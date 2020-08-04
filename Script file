@@ -1,0 +1,32 @@
+applid=xxx
+app=yyy
+env=production
+SUBJECT="${env} ${applid} | Debug is enabled on below instances"
+dest="email id"
+timestamp=`date '+%Y-%m-%d %H:%M:%S'`
+rm -rf out.txt
+debug=0
+for server in `grep -v "^#" ${env}App.cfg | awk '{print $1}'`
+do
+for instance in `grep ${server} ${env}App.cfg | awk '{for(i=2;i<=NF;i++) printf("%s ", $i);}'`
+ do
+ count=`ssh -q ${server} "grep -c 'level name=\"DEBUG\"' /tools/jboss/${applid}/${server}/${applid}-${env}-${instance}-sprint.com/configuration/${instance}-sprint.com.xml"`
+ if [[ ${count} > 0 ]]
+ then
+ debug=1
+ echo ${server}-${instance} >> out.txt
+ fi
+ done
+done
+if [ $debug -eq 1 ];
+then
+ cat out.txt | /bin/mail -s "${SUBJECT}" ${dest}
+fi
+
+===================
+
+${env}App.cfg
+#HostName Instance Name
+pvmkxxxx yyyy
+pvmkxxxx yyyy
+
